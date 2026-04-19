@@ -107,9 +107,17 @@ app.get("/", (req, res) => res.redirect("/docs"));
 
 app.use("/docs", swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 
-const port = USE_VERCEL_KV
-  ? PROD_BACKEND_PORT
-  : JSON.parse(fs.readFileSync("../frontend/backend.config.json")).BACKEND_PORT;
+let port;
+if (USE_VERCEL_KV) {
+  port = PROD_BACKEND_PORT;
+} else {
+  try {
+    const config = JSON.parse(fs.readFileSync("../frontend/backend.config.json"));
+    port = config.BACKEND_PORT;
+  } catch (e) {
+    port = 8000; // Default port
+  }
+}
 
 let server;
 if (port) {

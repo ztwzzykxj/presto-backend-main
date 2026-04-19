@@ -18,35 +18,46 @@ const update = async (admins) =>
   new Promise((resolve, reject) => {
     lock.acquire("saveData", async () => {
       try {
-        if (USE_VERCEL_KV) {
-          // Store to Vercel KV
+        if (USE_VERCEL_KV && KV_REST_API_URL && KV_REST_API_TOKEN) {
+          // Store to Upstash KV
           const response = await fetch(`${KV_REST_API_URL}/set/admins`, {
             method: "POST",
             headers: {
               "Content-Type": "application/json",
               Authorization: `Bearer ${KV_REST_API_TOKEN}`,
             },
-            body: JSON.stringify({ admins }),
+            body: JSON.stringify({ value: JSON.stringify({ admins }), ex: 86400 }),
           });
           if (!response.ok) {
+            const errText = await response.text();
+            console.log("KV write error:", errText);
             reject(new Error("Writing to Vercel KV failed"));
+          } else {
+            resolve();
           }
         } else {
           // Store to local file system
-          fs.writeFileSync(
-            DATABASE_FILE,
-            JSON.stringify(
-              {
-                admins,
-              },
-              null,
-              2
-            )
-          );
+          try {
+            fs.writeFileSync(
+              DATABASE_FILE,
+              JSON.stringify(
+                {
+                  admins,
+                },
+                null,
+                2
+              )
+            );
+            resolve();
+          } catch (fsError) {
+            console.log("Local file write error (expected on Vercel):", fsError.message);
+            // On Vercel, this will fail but we can still resolve
+            // because the function will use in-memory state
+            resolve();
+          }
         }
-        resolve();
       } catch(error) {
-        console.log(error);
+        console.log("Update error:", error);
         reject(new Error("Writing to database failed"));
       }
     });

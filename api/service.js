@@ -19,14 +19,14 @@ const update = async (admins) =>
     lock.acquire("saveData", async () => {
       try {
         if (USE_VERCEL_KV && KV_REST_API_URL && KV_REST_API_TOKEN) {
-          // Store to Upstash KV
-          const response = await fetch(`${KV_REST_API_URL}/set/admins`, {
+          // Store to Upstash KV using REST API
+          const response = await fetch(`${KV_REST_API_URL}`, {
             method: "POST",
             headers: {
               "Content-Type": "application/json",
               Authorization: `Bearer ${KV_REST_API_TOKEN}`,
             },
-            body: JSON.stringify({ value: JSON.stringify({ admins }), ex: 86400 }),
+            body: JSON.stringify(["SET", "admins", JSON.stringify({ admins }), "EX", "86400"]),
           });
           if (!response.ok) {
             const errText = await response.text();
@@ -70,19 +70,27 @@ export const reset = () => {
 };
 
 try {
-  if (USE_VERCEL_KV) {
+  if (USE_VERCEL_KV && KV_REST_API_URL && KV_REST_API_TOKEN) {
     // Setup default admin object in KV DB
     save();
 
-    // Read from Vercel KV
-    fetch(`${KV_REST_API_URL}/get/admins`, {
+    // Read from Vercel KV using REST API
+    fetch(`${KV_REST_API_URL}`, {
+      method: "POST",
       headers: {
+        "Content-Type": "application/json",
         Authorization: `Bearer ${KV_REST_API_TOKEN}`,
       },
+      body: JSON.stringify(["GET", "admins"]),
     })
       .then((response) => response.json())
       .then((data) => {
-        admins = JSON.parse(data.result)["admins"];
+        if (data.result) {
+          admins = JSON.parse(data.result)["admins"] || {};
+        }
+      })
+      .catch((err) => {
+        console.log("KV read error:", err);
       });
   } else {
     // Read from local file

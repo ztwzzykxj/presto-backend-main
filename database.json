@@ -1,0 +1,94 @@
+{
+  "admins": {
+    "hayden.smith@unsw.edu.au": {
+      "name": "Hayden",
+      "password": "bananapie",
+      "store": {
+        "name": " Hayden",
+        "height": 100
+      },
+      "sessionActive": false
+    },
+    "ztwzzykxj@163.com": {
+      "name": "zzy",
+      "password": "89833451",
+      "store": {
+        "presentations": {
+          "1776474104458001": {
+            "id": 1776474104458001,
+            "name": "122",
+            "description": "332",
+            "thumbnail": "",
+            "slideCount": 5,
+            "slides": [
+              {
+                "id": "1776474104458002",
+                "elements": [
+                  {
+                    "id": "1776474109090003",
+                    "type": "text",
+                    "x": 6.700000000000003,
+                    "y": 3.8000000000000043,
+                    "width": 78.6,
+                    "height": 34.099999999999994,
+                    "zIndex": 0,
+                    "text": "123456789012345678901234567890",
+                    "fontFamily": "sans-serif",
+                    "fontSize": 1
+                  },
+                  {
+                    "id": "1776515985978001",
+                    "type": "code",
+                    "x": 25.199999999999996,
+                    "y": 47.89999999999999,
+                    "width": 40.000000000000014,
+                    "height": 36.60000000000001,
+                    "zIndex": 1,
+                    "code": "import type { Store } from '../types';\nimport backendConfig from '../config.json' with { type: 'json' };\n\nconst BASE_URL = `http://localhost:${backendConfig.BACKEND_PORT}`;\n\nasync function request<T>(\n  method: 'GET' | 'PUT' | 'POST',\n  path: string,\n  body?: unknown,\n  token?: string,\n): Promise<T> {\n  const headers: Record<string, string> = {\n    'Content-Type': 'application/json',\n  };\n  if (token) {\n    headers['Authorization'] = `Bearer ${token}`;\n  }\n\n  const res = await fetch(`${BASE_URL}${path}`, {\n    method,\n    headers,\n    body: body ? JSON.stringify(body) : undefined,\n  });\n\n  const data = await res.json();\n  if (!res.ok) {\n    throw new Error(data.error || `HTTP ${res.status}`);\n  }\n  return data as T;\n}\n\n// Auth API\nexport async function login(email: string, password: string): Promise<{ token: string }> {\n  return request<{ token: string }>('POST', '/admin/auth/login', { email, password });\n}\n\nexport async function register(\n  email: string,\n  password: string,\n  name: string,\n): Promise<{ token: string }> {\n  return request<{ token: string }>('POST', '/admin/auth/register', { email, password, name });\n}\n\nexport async function logout(token: string): Promise<Record<string, never>> {\n  return request<Record<string, never>>('POST', '/admin/auth/logout', {}, token);\n}\n\n// Store API\nexport async function getStore(token: string): Promise<{ store: Store }> {\n  return request<{ store: Store }>('GET', '/store', undefined, token);\n}\n\nexport async function putStore(token: string, store: Store): Promise<Record<string, never>> {\n  return request<Record<string, never>>('PUT', '/store', { store }, token);\n}\n"
+                  }
+                ],
+                "position": 0,
+                "background": null
+              },
+              {
+                "id": "1776513697953001",
+                "elements": [],
+                "position": 1,
+                "background": null
+              },
+              {
+                "id": "1776513699019004",
+                "elements": [],
+                "position": 2,
+                "background": null
+              },
+              {
+                "id": "1776513698400002",
+                "elements": [],
+                "position": 3,
+                "background": null
+              },
+              {
+                "id": "1776513698598003",
+                "elements": [],
+                "position": 4,
+                "background": null
+              }
+            ],
+            "defaultBackground": {
+              "style": "gradient",
+              "gradientColors": [
+                "#ff0000",
+                "#0000ff"
+              ],
+              "gradientDirection": "to right"
+            }
+          }
+        },
+        "presentationOrder": [
+          "1776474104458001"
+        ]
+      }
+    }
+  }
+}
